@@ -4,11 +4,10 @@
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
+    using System.Windows.Forms;
     using System.Net;
-    using System.Windows;
     using Microsoft.VisualStudio.Shell.Interop;
     using VSPackageInstaller.Cache;
-    
 
     internal sealed class SearchResult : IVsSearchItemResult
     {
@@ -27,14 +26,11 @@
             this.item = item;
         }
 
-        internal static VSPackageInstaller.PackageInstaller.PackageInstaller packageInstaller = new PackageInstaller.PackageInstaller();
-
         public void InvokeAction()
         {
             // TODO: use extension manager integration to allow installation while VS is running.
             // Gone for now to the wisps of time...
-            // packageInstaller.InstallPackages(item.ExtensionId.ToString(), item.Title);
-
+            
             Task.Run(InvokeActionAsync);
         }
 

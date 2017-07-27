@@ -1,3 +1,4 @@
 ﻿VS Package Installer
 
+26-Jul-2017 v1.01 - Removed dead coded
 26-Jul-2017 v1.0 - Initial release
