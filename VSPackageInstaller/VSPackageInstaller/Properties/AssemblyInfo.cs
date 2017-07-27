@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("VSPackageInstaller")]
-[assembly: AssemblyDescription("Sublime style extension gallery search")]
+[assembly: AssemblyDescription("Fast way to search the Marketplace for extensions. Single-click easy-install.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("VSPackageInstaller")]
