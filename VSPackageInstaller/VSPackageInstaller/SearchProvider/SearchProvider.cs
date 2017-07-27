@@ -50,7 +50,7 @@
             try
             {
                 var extensionIdGuid = new Guid(lpszPersistenceData);
-                var selectedItem = this.CachedItems.SingleOrDefault(cachedItem => cachedItem.ExtensionId == extensionIdGuid);
+                var selectedItem = this.CachedItems.FirstOrDefault(cachedItem => cachedItem.ExtensionId == extensionIdGuid);
 
                 return selectedItem != null ? new SearchResult(this, selectedItem) : null;
             }
@@ -114,20 +114,28 @@
                 throw new InvalidOperationException("Cache has not yet been initialized");
             }
 
-            // Clear the list.
-            cacheManager.ReplaceAll(System.Linq.Enumerable.Empty<IExtensionDataItemView>());
-
-            // TODO: correct SKU information.
-            // TODO: incremental.
-            marketPlaceService.GetMarketplaceDataItems(
-                VsEditionUtil.GetCurrentVsVersion(),
-                VsEditionUtil.GetSkusList(),
-                DateTime.MinValue,
-                (items) =>
-                {
-                    cacheManager.AddRange(items);
-                    return true;
-                });
+            if (cacheManager.Snapshot.Count == 0)
+            {
+                // Fetch all items and replace all in the list with the ones that are new or modified since last refresh.
+                marketPlaceService.GetMarketplaceDataItems(
+                    VsEditionUtil.GetCurrentVsVersion(),
+                    VsEditionUtil.GetSkusList(),
+                    DateTime.MinValue,
+                    FreshUpdateCallback);
+            }
+            else
+            {
+                // Fetch items and selectively replace the ones that are new or modified since last refresh.
+                // I seriously hope that this works...The assumption is that the call to GetMarketPlaceDataItems should
+                // only be returning the items that have changed since the given timestamp (the last cache save time).
+                // We should then just be replacing only the items that are new or modified in the cache. We have unit
+                // tests for the cache AddOrUpdateRange, but no integration test for both so fingers crossed :D
+                marketPlaceService.GetMarketplaceDataItems(
+                    VsEditionUtil.GetCurrentVsVersion(),
+                    VsEditionUtil.GetSkusList(),
+                    cacheManager.LastCacheFileUpdateTimeStamp ?? DateTime.MinValue,
+                    IncrementalUpdateCallback);
+            }
 
             try
             {
@@ -138,6 +146,23 @@
             {
                 Debug.Fail("Failed to create local app data directory");
             }
+        }
+
+        private static bool FreshUpdateCallback(IEnumerable<ExtensionDataItem> items)
+        {
+            cacheManager.AddRange(items);
+            return true;
+        }
+
+        private static bool IncrementalUpdateCallback(IEnumerable<ExtensionDataItem> items)
+        {
+            // equalityKeySelector indicates the unique identifier for the cache item
+            // that is used to determine which items are 'updated' versions of an existing one.
+            cacheManager.AddOrUpdateRange(
+                items,
+                equalityKeySelector: item => item.ExtensionId);
+
+            return true;
         }
     }
 }
