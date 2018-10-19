@@ -1,4 +1,4 @@
-# Visual Studio OmniSearch Concept
+# Visual Studio Extension Concept
 *Search provider for searching the Visual Studio Marketplace for extension from Quick Launch*
 
 ## Introduction
